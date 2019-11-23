@@ -1,0 +1,33 @@
+#!/bin/bash
+set -eu
+
+# This script installs neovim ruby gem in an isolated gems directory.
+# Installing neovim ruby gem requires installing ruby, ruby-devel (or ruby-dev)
+# make and gcc packages.
+
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+NEOVIM_CONFIG_HOME="$(dirname ${THIS_DIR})"
+NEOVIM_LOCAL_DIR="${NEOVIM_CONFIG_HOME}/.local/"
+echoerr() { echo "$@" 1>&2; } # Echo text to stderr
+
+export GEM_HOME="${NEOVIM_LOCAL_DIR}/ruby-gem-home/"
+export GEM_PATH="${GEM_HOME}"
+export GEM_SPEC_CACHE="${GEM_HOME}/specs"
+
+# Exit if Ruby is not available.
+if ! [ -x "$(command -v ruby)" ]; then
+  echoerr "fatal: Executable ruby is not available."
+  exit 255
+fi
+
+# If argument is only --neovim-setup, setup isolated Ruby gem home.
+if [ $# -eq 1 ] && [ $1 == "--neovim-setup" ]; then
+  mkdir -p "${GEM_HOME}"
+
+  # Use --no-user-install to force installation to GEM_HOME. Without specifying
+  # this, gem might get installed to ~/.gem (if --user-install is default)
+  gem install neovim --norc --no-user-install --bindir "$GEM_HOME/bin"
+  exit 0
+fi
+
+exec "${GEM_HOME}/bin/neovim-ruby-host" "${@}"

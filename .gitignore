@@ -1,0 +1,5 @@
+# All Local Generated or Machine Specific Files
+.local/
+
+# Packages
+pack/

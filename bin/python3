@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -eu
+
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+NEOVIM_CONFIG_HOME="$(dirname ${THIS_DIR})"
+NEOVIM_LOCAL_DIR="${NEOVIM_CONFIG_HOME}/.local/"
+
+echoerr() { echo "$@" 1>&2; } # Echo text to stderr
+
+PYTHON_VENV_DIR="${NEOVIM_LOCAL_DIR}/python3-venv"
+
+# Exit if Python is not available.
+if ! [ -x "$(command -v python3)" ]; then
+  echoerr "fatal: Executable python3 is not available."
+  exit 255
+fi
+
+# If argument is only --neovim-setup, setup venv and install pynvim and exit.
+if [ $# -eq 1 ] && [ $1 == "--neovim-setup" ]; then
+  mkdir -p "${PYTHON_VENV_DIR}"
+  python3 -m venv "$PYTHON_VENV_DIR"
+  (
+    cd "$PYTHON_VENV_DIR"
+    source "$PYTHON_VENV_DIR/bin/activate"
+    pip install pynvim
+  )
+  exit 0
+fi
+
+# Exec python in venv.
+cd "$PYTHON_VENV_DIR"
+source "$PYTHON_VENV_DIR/bin/activate"
+exec python "${@}"
