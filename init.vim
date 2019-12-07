@@ -83,6 +83,8 @@ set spell               " Enable spell checking.
 set encoding=utf-8      " The encoding displayed.
 set fileencoding=utf-8  " The encoding written to file.
 
+set laststatus=2        " Always show the status line.
+
 set cmdheight=2         " Better display for messages
 
 " don't give |ins-completion-menu| messages. (Eg: -- XXX completion (YYY), Pattern not found)
@@ -99,11 +101,15 @@ set ttyfast
 
 set foldenable          " Enable folding
 set foldmethod=indent   " Default to fold based on indentation. Using syntax will be very slow.
+set foldnestmax=4       " Avoid deeply nested folds. Only folds top few levels.
+set foldlevelstart=1    " Open first level folding by default. This gives a good overview on opening the file.
 
 set wildoptions=pum,tagfile " Use popup menu (pum) to display completions.
 
 " Move netrw local files to .local directory
 let g:netrw_home = fnamemodify($MYVIMRC, ":p:h") . '.local/netrw'
+
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                           Remote Plugin Hosts                                "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -111,6 +117,42 @@ let g:netrw_home = fnamemodify($MYVIMRC, ":p:h") . '.local/netrw'
 let g:loaded_python_provider = 1 " Disable Python 2 support
 let g:python3_host_prog = fnamemodify($MYVIMRC, ":p:h") . '/bin/python3'
 let g:ruby_host_prog = fnamemodify($MYVIMRC, ":p:h") . '/bin/ruby'
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                               Key Bindings                                   "
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Use Space as leader key
+let mapleader = "\<Space>"
+
+" Allow writing via sudo
+cnoremap w!! w !sudo tee > /dev/null %
+
+" Clear search highlight from previous search.
+command ClearSearch let @/=""
+
+" Map ; (semi colon) to : (colon) in normal mode. Helps avoid pressing shift key.
+nnoremap ; :
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                 Terminal                                     "
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Lots of scrollback in terminal
+let g:terminal_scrollback_buffer_size = 10000
+
+" Quickly open a shell below current window
+nnoremap <leader>sh :below 10sp term:///bin/bash<cr>
+
+" Automatically go into insert mode and disable line numbers when opening new
+" terminal window
+augroup terminal_start_defaults
+  autocmd!
+  autocmd TermOpen * startinsert
+  autocmd TermOpen * setlocal nonumber
+  autocmd TermOpen * setlocal norelativenumber
+augroup END
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                 Plugins                                      "
@@ -168,6 +210,12 @@ if has('nvim')
   aug END
 end
 
+" Search and open file with fzf. All files listing.
+nnoremap <leader>f :Files<CR>
+" Show buffer switch menu.
+nnoremap <leader>b :Buffers<CR>
+
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                 Linter                                       "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -175,6 +223,7 @@ call minpac#add('dense-analysis/ale')
 let g:ale_completion_enabled = 0 " Disable Ale's completion provider.
 let g:ale_disable_lsp = 1 " Disable LSP.
 let g:ale_fix_on_save = 0 " Don't automatically fix files on save.
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                   Ruby                                       "
@@ -257,8 +306,8 @@ autocmd CursorHold * silent call CocActionAsync('highlight')
 nmap <leader>rn <Plug>(coc-rename)
 
 " Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
+" xmap <leader>f  <Plug>(coc-format-selected)
+" nmap <leader>f  <Plug>(coc-format-selected)
 
 augroup mygroup
   autocmd!
@@ -297,11 +346,11 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
-set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
+" set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
 " Using CocList
 " Show all diagnostics
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
+nnoremap <silent> <space>la  :<C-u>CocList diagnostics<cr>
 " Manage extensions
 nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
 " Show commands
@@ -316,3 +365,5 @@ nnoremap <silent> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
+
+lua require("statusline")
