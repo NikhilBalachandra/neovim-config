@@ -244,9 +244,13 @@ let g:ruby_spellcheck_strings = 1
 "                                Golang                                        "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 call minpac#add('fatih/vim-go')
-" disable vim-go :GoDef short cut (gd)
-" this is handled by LanguageClient [LC]
+" disable features supported by the languageserver. These things would be
+" handled by LanguageClient [LC]
+let g:go_gopls_enabled = 0
 let g:go_def_mapping_enabled = 0
+let g:go_code_completion_enabled = 0
+let g:go_doc_keywordprg_enabled = 0
+let g:go_metalinter_enabled = 0
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                        Conquer of Completions                                "
