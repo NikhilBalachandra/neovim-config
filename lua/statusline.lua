@@ -1,25 +1,25 @@
 StatusLine = {}
 
+local os = require("os")
 local Git = require("git")
-local IOUtils = require("ioutils")
 
 local MODES = {
     n = "Normal",
     i = "Insert",
-    v = "Visual(C)",
-    V = "Visual(L)",
-    s = "Select(C)",
-    S = "Select(L)",
-    ["^V"] = "Visual(B)",
-    ["CTRL-S"] = "Select(B)",
-    i = "Insert",
-    c = "Command"
+    c = "Command",
+    v = "V.Char",
+    V = "V.Line",
+    s = "S.Char",
+    S = "S.Line",
+    ["^V"] = "V.Block",
+    ["CTRL-S"] = "S.Block"
 }
 
-local GIT_BRANCH_FILE = ".git/HEAD"
-local branchNameCache = ""
-local fsevent = nil
+local branch_last_determined_at = 0
+local branch_name_cache = ""
+local BRANCH_CACHE_EXPIRY = 5 -- Number of seconds
 
+-- Determine current mode
 StatusLine.mode = function()
     local mode = vim.api.nvim_get_mode()
     local modekey = mode["mode"]
@@ -29,58 +29,63 @@ StatusLine.mode = function()
     return MODES[modekey]
 end
 
-StatusLine.VCSCurrentBranchName = function()
-    local f = Git.CurrentBranch
-    local status, branch = pcall(f)
-    if status then
-        return branch
-    end
-    return ""
-end
+-- Determine source control branch name for the present working directory.
+StatusLine.vcs_current_branch_name = function()
+    local current_time = os.time()
 
-StatusLine.VimEnter = function()
-    if IOUtils.file_exists(GIT_BRANCH_FILE) then
-        branchNameCache = StatusLine.VCSCurrentBranchName()
-
-        -- Redefine VCSCurrentBranchName function to return value from cache.
-        StatusLine.VCSCurrentBranchName = function()
-            return branchNameCache
+    -- Recompute branch name if it was determined earlier than branch cache expiry
+    if current_time - branch_last_determined_at > BRANCH_CACHE_EXPIRY then
+        local f = Git.CurrentBranch
+        local status, branch = pcall(f)
+        if status then
+            branch_last_determined_at = current_time
+            branch_name_cache = branch
+            return branch_name_cache
         end
-
-        fsevent = vim.loop.new_fs_event()
-        callback = function()
-            branchname = Git.CurrentBranch()
-        end
-        fsevent:start(GIT_BRANCH_FILE, {}, callback)
+        return ""
     end
-end
 
-StatusLine.VimLeave = function()
-    -- TODO: Blocks exit for few seconds.
-    fsevent:stop()
+    return branch_name_cache
 end
 
 
 vim.api.nvim_set_option("laststatus", 2) -- Enable statusline display
 
 local statusline = ""
-statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.mode()')} %#LineNr#" -- Mode
-statusline = statusline .. "%#CursorColumn#"
-statusline = statusline .. " %{luaeval('StatusLine.VCSCurrentBranchName()')} " -- Git Branch
-statusline = statusline .. "%f" -- Filename
-statusline = statusline .. "%m" -- Modified flag
 
--- Right side Components
-statusline = statusline .. "%=" -- Justify right
-statusline = statusline .. "%y" -- File type
+-- Add read only flag if set
+statusline = statusline .. "%#Error#%r"
+
+-- Mode
+statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.mode()')} %#LineNr#"
+
+-- Change foreground color
+statusline = statusline .. "%#CursorColumn#"
+
+-- Git Branch
+statusline = statusline .. " %{luaeval('StatusLine.vcs_current_branch_name()')} "
+
+-- Filename
+statusline = statusline .. "%f"
+
+-- Modified
+statusline = statusline .. "%m"
+
+-- Justify right
+statusline = statusline .. "%="
+
+-- File type
+statusline = statusline .. "%y"
+
 -- Encoding (such as utf-8) and line ending
 statusline = statusline .. " [%{&fileencoding?&fileencoding:&encoding} | %{&fileformat}] "
 
-statusline = statusline .. " %p%% " -- Cursor position of the line (in percent)
-statusline = statusline .. " %l:%c " -- Line Number and Column number.
+-- Cursor position of the line (in percent)
+statusline = statusline .. " %p%% " 
+
+-- Line Number and Column number.
+statusline = statusline .. " %l:%c "
 
 vim.api.nvim_set_option("statusline", statusline)
-vim.api.nvim_command("autocmd VimEnter * lua StatusLine.VimEnter()")
-vim.api.nvim_command("autocmd VimLeavePre * lua StatusLine.VimLeave()")
 
 return StatusLine
