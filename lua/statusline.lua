@@ -1,6 +1,7 @@
 StatusLine = {}
 
 local Git = require("git")
+local IOUtils = require("ioutils")
 
 local MODES = {
     n = "Normal",
@@ -15,7 +16,11 @@ local MODES = {
     c = "Command"
 }
 
-StatusLine.Mode = function()
+local GIT_BRANCH_FILE = ".git/HEAD"
+local branchNameCache = ""
+local fsevent = nil
+
+StatusLine.mode = function()
     local mode = vim.api.nvim_get_mode()
     local modekey = mode["mode"]
     if MODES[modekey] == nil then
@@ -24,34 +29,42 @@ StatusLine.Mode = function()
     return MODES[modekey]
 end
 
--- StatusLine.VCSCurrentBranchName = function()
---     local f = Git.CurrentBranch
---     local status, branch = pcall(f)
---     if status then
---         return branch
---     end
---     return ""
--- end
-
-local f = io.open(".git/HEAD", "r")
-branchname = f:read("*all")
-
 StatusLine.VCSCurrentBranchName = function()
-    return branchname
+    local f = Git.CurrentBranch
+    local status, branch = pcall(f)
+    if status then
+        return branch
+    end
+    return ""
 end
 
-fsevent = vim.loop.new_fs_event()
-callback = function()
-  local f = io.open(".git/HEAD", "r")
-  branchname = f:read("*all")
-  f:close()
+StatusLine.VimEnter = function()
+    if IOUtils.file_exists(GIT_BRANCH_FILE) then
+        branchNameCache = StatusLine.VCSCurrentBranchName()
+
+        -- Redefine VCSCurrentBranchName function to return value from cache.
+        StatusLine.VCSCurrentBranchName = function()
+            return branchNameCache
+        end
+
+        fsevent = vim.loop.new_fs_event()
+        callback = function()
+            branchname = Git.CurrentBranch()
+        end
+        fsevent:start(GIT_BRANCH_FILE, {}, callback)
+    end
 end
-fsevent:start(".git/HEAD", {}, callback)
+
+StatusLine.VimLeave = function()
+    -- TODO: Blocks exit for few seconds.
+    fsevent:stop()
+end
+
 
 vim.api.nvim_set_option("laststatus", 2) -- Enable statusline display
 
 local statusline = ""
-statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.Mode()')} %#LineNr#" -- Mode
+statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.mode()')} %#LineNr#" -- Mode
 statusline = statusline .. "%#CursorColumn#"
 statusline = statusline .. " %{luaeval('StatusLine.VCSCurrentBranchName()')} " -- Git Branch
 statusline = statusline .. "%f" -- Filename
@@ -67,5 +80,7 @@ statusline = statusline .. " %p%% " -- Cursor position of the line (in percent)
 statusline = statusline .. " %l:%c " -- Line Number and Column number.
 
 vim.api.nvim_set_option("statusline", statusline)
+vim.api.nvim_command("autocmd VimEnter * lua StatusLine.VimEnter()")
+vim.api.nvim_command("autocmd VimLeavePre * lua StatusLine.VimLeave()")
 
 return StatusLine
