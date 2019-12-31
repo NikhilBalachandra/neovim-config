@@ -1,5 +1,10 @@
 {
   "languageserver": {
+    "solargraph": {
+      "command": "solargraph",
+      "filetypes": ["ruby"],
+      "args": ["stdio"]
+    },
     "golang": {
       "command": "gopls",
       "rootPatterns": ["go.mod", ".vim/", ".git/", ".hg/"],

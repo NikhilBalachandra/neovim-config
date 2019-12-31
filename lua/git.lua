@@ -1,4 +1,4 @@
-Git = {}
+local Git = {}
 
 local io = require("io")
 

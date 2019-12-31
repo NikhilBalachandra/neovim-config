@@ -26,7 +26,7 @@ set shiftwidth=4   " Control number of spaces for each step of autoindent.
 set nosmartindent  " Disable heuristics based indentation. This option should be
                    " only used in cases when not happy with filetype based indentation.
 
-set mouse=         " Disable Mouse
+set mouse=a        " Enable Mouse
 
 set nowrap         " Don't wrap lines by buffer width.
 
@@ -78,7 +78,7 @@ set wildmode=longest:full,full
 set completeopt=menu,longest,preview
 
 set spelllang=en
-set spell               " Enable spell checking.
+set nospell               " Don't enable spell checking by default.
 
 set encoding=utf-8      " The encoding displayed.
 set fileencoding=utf-8  " The encoding written to file.
@@ -109,6 +109,8 @@ set wildoptions=pum,tagfile " Use popup menu (pum) to display completions.
 " Move netrw local files to .local directory
 let g:netrw_home = fnamemodify($MYVIMRC, ":p:h") . '.local/netrw'
 
+set grepprg=rg\ --vimgrep\ --no-heading\ --smart-case
+command! -bar -nargs=1 Grep silent grep <q-args> | redraw! | cw
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                           Remote Plugin Hosts                                "
@@ -183,10 +185,11 @@ command! PackUpdate packadd minpac | source $MYVIMRC | call minpac#update('', {'
 command! PackClean  packadd minpac | source $MYVIMRC | call minpac#clean()
 command! PackStatus packadd minpac | source $MYVIMRC | call minpac#status()
 
-call minpac#add('joshdick/onedark.vim')
-augroup on_plugin_load_onedark
+call minpac#add('arcticicestudio/nord-vim')
+" call minpac#add('joshdick/onedark.vim')
+augroup on_colorscheme_plugin_load
   autocmd!
-  autocmd VimEnter * colorscheme onedark
+  autocmd VimEnter * colorscheme nord
 augroup END
 
 " Support . (dot; repeat) for the plugins that support it.
@@ -216,6 +219,10 @@ nnoremap <leader>f :Files<CR>
 nnoremap <leader>b :Buffers<CR>
 
 
+call minpac#add('liuchengxu/vim-which-key')
+nnoremap <silent> <leader> :WhichKey '<Space>'<CR>
+set timeoutlen=500
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                 Linter                                       "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -239,11 +246,12 @@ let g:rubycomplete_use_bundler = 1 " Load gems in the Bundler (As they are gener
 
 let g:ruby_spellcheck_strings = 1
 
+call minpac#add('tpope/vim-rails')
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                Golang                                        "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-call minpac#add('fatih/vim-go')
+call minpac#add('fatih/vim-go', {'rev': 'e3a0e1ead2c14aa27d1d34950c0c43a7b296e368'})
 " disable features supported by the languageserver. These things would be
 " handled by LanguageClient [LC]
 let g:go_gopls_enabled = 0
@@ -251,6 +259,19 @@ let g:go_def_mapping_enabled = 0
 let g:go_code_completion_enabled = 0
 let g:go_doc_keywordprg_enabled = 0
 let g:go_metalinter_enabled = 0
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"                                  Snippets                                    "
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call minpac#add('Shougo/neosnippet.vim')
+call minpac#add('Shougo/neosnippet-snippets')
+call minpac#add('honza/vim-snippets')
+let g:neosnippet#snippets_directory='~/.config/nvim/pack/minpac/start/vim-snippets/snippets/'
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                        Conquer of Completions                                "

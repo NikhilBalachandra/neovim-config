@@ -2,6 +2,7 @@ StatusLine = {}
 
 local os = require("os")
 local Git = require("git")
+local vimh = require("vimh")
 
 local MODES = {
     n = "Normal",
@@ -40,52 +41,63 @@ StatusLine.vcs_current_branch_name = function()
         if status then
             branch_last_determined_at = current_time
             branch_name_cache = branch
-            return branch_name_cache
+            return " " .. branch_name_cache .. " "
         end
         return ""
     end
 
-    return branch_name_cache
+    return " " .. branch_name_cache .. " "
 end
 
+StatusLine.Render = function()
+  local statusline = ""
 
-vim.api.nvim_set_option("laststatus", 2) -- Enable statusline display
+  -- Add read only flag if set
+  statusline = statusline .. "%#Error#%r"
 
-local statusline = ""
+  -- Mode
+  statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.mode()')} %#LineNr#"
 
--- Add read only flag if set
-statusline = statusline .. "%#Error#%r"
+  -- Change foreground color
+  statusline = statusline .. "%#CursorColumn#"
 
--- Mode
-statusline = statusline .. "%#PmenuSel# %{luaeval('StatusLine.mode()')} %#LineNr#"
+  -- Git Branch
+  statusline = statusline .. "%{luaeval('StatusLine.vcs_current_branch_name()')}"
 
--- Change foreground color
-statusline = statusline .. "%#CursorColumn#"
+  -- Filename
+  statusline = statusline .. "%f"
 
--- Git Branch
-statusline = statusline .. " %{luaeval('StatusLine.vcs_current_branch_name()')} "
+  -- Modified
+  statusline = statusline .. "%m"
 
--- Filename
-statusline = statusline .. "%f"
+  -- Justify right
+  statusline = statusline .. "%="
 
--- Modified
-statusline = statusline .. "%m"
+  -- File type
+  statusline = statusline .. "%y"
 
--- Justify right
-statusline = statusline .. "%="
+  -- Encoding (such as utf-8) and line ending
+  statusline = statusline .. " [%{&fileencoding?&fileencoding:&encoding} | %{&fileformat}] "
 
--- File type
-statusline = statusline .. "%y"
+  -- Cursor position of the line (in percent)
+  statusline = statusline .. " %p%% " 
 
--- Encoding (such as utf-8) and line ending
-statusline = statusline .. " [%{&fileencoding?&fileencoding:&encoding} | %{&fileformat}] "
+  -- Line Number and Column number.
+  statusline = statusline .. " %l:%c "
 
--- Cursor position of the line (in percent)
-statusline = statusline .. " %p%% " 
+  vim.api.nvim_set_option("laststatus", 2) -- Enable statusline display
+  vim.api.nvim_command(string.format("let &l:statusline=\"%s\"", statusline))
+end
 
--- Line Number and Column number.
-statusline = statusline .. " %l:%c "
+StatusLine.RenderNC = function()
+  local statusline = "%f"
+  vim.api.nvim_set_option("laststatus", 2) -- Enable statusline display
+  vim.api.nvim_command(string.format("let &l:statusline=\"%s\"", statusline))
+end
 
-vim.api.nvim_set_option("statusline", statusline)
+vimh.create_augroup("statusline_active_windows", {
+    {"FocusGained,VimEnter,WinNew,WinEnter,BufWinEnter", "*", "call luaeval('StatusLine.Render()')"},
+    {"FocusLost,WinLeave", "*", "call luaeval('StatusLine.RenderNC()')"}
+})
 
 return StatusLine

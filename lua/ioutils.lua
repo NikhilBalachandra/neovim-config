@@ -1,4 +1,4 @@
-IOUtils = {}
+local IOUtils = {}
 
 local io = require("io")
 
