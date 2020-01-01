@@ -392,3 +392,6 @@ nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 
 lua require("statusline")
+
+command! -nargs=+ -complete=dir -bar SearchProject call mysearch#find(<q-args>)
+
