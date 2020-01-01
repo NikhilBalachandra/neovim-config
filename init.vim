@@ -128,7 +128,7 @@ let mapleader = "\<Space>"
 cnoremap w!! w !sudo tee > /dev/null %
 
 " Clear search highlight from previous search.
-command ClearSearch let @/=""
+command! ClearSearch let @/=""
 
 " Map ; (semi colon) to : (colon) in normal mode. Helps avoid pressing shift key.
 nnoremap ; :
