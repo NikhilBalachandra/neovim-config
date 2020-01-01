@@ -80,9 +80,6 @@ set completeopt=menu,longest,preview
 set spelllang=en
 set nospell               " Don't enable spell checking by default.
 
-set encoding=utf-8      " The encoding displayed.
-set fileencoding=utf-8  " The encoding written to file.
-
 set laststatus=2        " Always show the status line.
 
 set cmdheight=2         " Better display for messages
