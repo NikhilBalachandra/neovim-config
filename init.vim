@@ -32,7 +32,7 @@ set nowrap         " Don't wrap lines by buffer width.
 
 set undofile       " Make undo available even after closing file or nvim.
 
-set clipboard+=unnamed " Use system clipboard
+set clipboard+=unnamedplus " Try to use clipboard all supported clipboard providers
 
 set nostartofline  " Prevent cursor from moving to beginning of line when
                    " switching buffers
@@ -182,11 +182,12 @@ command! PackUpdate packadd minpac | source $MYVIMRC | call minpac#update('', {'
 command! PackClean  packadd minpac | source $MYVIMRC | call minpac#clean()
 command! PackStatus packadd minpac | source $MYVIMRC | call minpac#status()
 
-call minpac#add('arcticicestudio/nord-vim')
-" call minpac#add('joshdick/onedark.vim')
+" call minpac#add('arcticicestudio/nord-vim')
+call minpac#add('joshdick/onedark.vim')
+" call minpac#add('bluz71/vim-nightfly-guicolors')
 augroup on_colorscheme_plugin_load
   autocmd!
-  autocmd VimEnter * colorscheme nord
+  autocmd VimEnter * colorscheme onedark
 augroup END
 
 " Support . (dot; repeat) for the plugins that support it.
@@ -248,7 +249,7 @@ call minpac#add('tpope/vim-rails')
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 "                                Golang                                        "
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-call minpac#add('fatih/vim-go', {'rev': 'e3a0e1ead2c14aa27d1d34950c0c43a7b296e368'})
+call minpac#add('fatih/vim-go')
 " disable features supported by the languageserver. These things would be
 " handled by LanguageClient [LC]
 let g:go_gopls_enabled = 0
